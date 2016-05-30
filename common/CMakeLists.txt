@@ -13,6 +13,7 @@ set(gammaray_common_srcs
   propertysyncer.cpp
   modelevent.cpp
   modelutils.cpp
+  objectidfilterproxymodel.cpp
   paintanalyzerinterface.cpp
   sourcelocation.cpp
   translator.cpp
@@ -85,6 +86,7 @@ if(NOT GAMMARAY_PROBE_ONLY_BUILD)
     modelroles.h
     objectbroker.h
     objectmodel.h
+    objectidfilterproxymodel.h
     paths.h
     probecontrollerinterface.h
     propertycontrollerinterface.h
