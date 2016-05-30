@@ -35,8 +35,12 @@
 #include <QMetaType>
 #include <QVector>
 
+#include <algorithm> // std::lexicographical_compare
+
 namespace GammaRay {
 /** @brief Type-safe and cross-process object identifier. */
+typedef QVector<class ObjectId> ObjectIds;
+
 class ObjectId
 {
 public:
@@ -65,13 +69,19 @@ public:
     inline Type type() const { return m_type; }
     inline QByteArray typeName() const { return m_typeName; }
 
-    inline QObject *asQObject()
+    inline QObject *asQObject() const
     {
         Q_ASSERT(m_type == QObjectType);
         return reinterpret_cast<QObject *>(m_id);
     }
 
-    inline void *asVoidStar()
+    template <typename T>
+    inline T asQObjectType() const
+    {
+        return qobject_cast<T>(asQObject());
+    }
+
+    inline void *asVoidStar() const
     {
         Q_ASSERT(m_type == VoidStarType);
         return reinterpret_cast<void *>(m_id);
@@ -80,7 +90,7 @@ public:
     inline operator quint64() const { return m_id; }
 
 private:
-    friend QDataStream &operator<<(QDataStream &out, ObjectId id);
+    friend QDataStream &operator<<(QDataStream &out, const ObjectId &id);
     friend QDataStream &operator>>(QDataStream &out, ObjectId &id);
 
     Type m_type;
@@ -122,13 +132,20 @@ private:
     Q_DISABLE_COPY(ProbeControllerInterface)
 };
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 6, 0)
+inline bool operator<(const ObjectIds &lhs, const ObjectIds &rhs)
+{
+    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+#endif
+
 inline QDebug &operator<<(QDebug dbg, ObjectId id)
 {
     dbg.nospace() << "ObjectId(" << id.type() << ", " << id.id() << ", " << id.typeName() << ")";
     return dbg.space();
 }
 
-inline QDataStream &operator<<(QDataStream &out, ObjectId id)
+inline QDataStream &operator<<(QDataStream &out, const ObjectId &id)
 {
     out << static_cast<quint8>(id.m_type);
     out << id.m_id;
@@ -166,8 +183,10 @@ QT_BEGIN_NAMESPACE
                         "com.kdab.GammaRay.ProbeControllerInterface")
 QT_END_NAMESPACE
 Q_DECLARE_METATYPE(GammaRay::ObjectId)
+Q_DECLARE_METATYPE(GammaRay::ObjectIds)
 QT_BEGIN_NAMESPACE
     Q_DECLARE_TYPEINFO(GammaRay::ObjectId, Q_MOVABLE_TYPE);
+    Q_DECLARE_TYPEINFO(GammaRay::ObjectIds, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 Q_DECLARE_METATYPE(GammaRay::ToolInfo)
 Q_DECLARE_METATYPE(GammaRay::ToolInfos)
