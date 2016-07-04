@@ -28,6 +28,7 @@
 #include "uistatemanager.h"
 #include "deferredtreeview.h"
 #include "deferredtreeview_p.h"
+#include "common/endpoint.h"
 #include "common/settempvalue.h"
 
 #include <QApplication>
@@ -87,6 +88,7 @@ UIStateManager::UIStateManager(QWidget *widget)
     , m_resizing(false)
 {
     Q_ASSERT(m_widget);
+
     m_widget->installEventFilter(this);
 }
 
@@ -159,6 +161,10 @@ void UIStateManager::setup()
         view->installEventFilter(this);
     }
 
+    const auto mo = m_widget->metaObject();
+    m_customRestoreMethod = mo->method(mo->indexOfMethod("restoreCustomState(QSettings*)"));
+    m_customSaveMethod = mo->method(mo->indexOfMethod("saveCustomState(QSettings*)"));
+
     restoreState();
 }
 
@@ -167,10 +173,26 @@ void UIStateManager::restoreState()
     restoreWindowState();
     restoreSplitterState();
     restoreHeaderState();
+
+    // Allow custom state per end point
+    if (m_customRestoreMethod.isValid()) {
+        Q_ASSERT(!Endpoint::instance()->label().isEmpty());
+        m_stateSettings->beginGroup(Endpoint::instance()->label());
+        m_customRestoreMethod.invoke(m_widget, Q_ARG(QSettings *, m_stateSettings));
+        m_stateSettings->endGroup();
+    }
 }
 
 void UIStateManager::saveState()
 {
+    // Allow custom state per end point
+    if (m_customSaveMethod.isValid()) {
+        Q_ASSERT(!Endpoint::instance()->label().isEmpty());
+        m_stateSettings->beginGroup(Endpoint::instance()->label());
+        m_customSaveMethod.invoke(m_widget, Q_ARG(QSettings *, m_stateSettings));
+        m_stateSettings->endGroup();
+    }
+
     saveWindowState();
     saveSplitterState();
     saveHeaderState();

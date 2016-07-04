@@ -35,6 +35,7 @@
 #include <QList>
 #include <QVector>
 #include <QHash>
+#include <QMetaMethod>
 
 QT_BEGIN_NAMESPACE
 class QWidget;
@@ -50,6 +51,15 @@ namespace GammaRay {
  * That mean any not moved splitter handle will not be persisted, and % based sizes
  * will works correctly even on resize.
  * Any QMainwindow is always restored/saved.
+ *
+ * There is now the possibility to implements custom restore/save state per targets.
+ * Just create those 2 public Q_INVOKABLE in the UIStateManager widget:
+ * - Q_INVOKABLE void saveCustomState(QSettings *settings) const;
+ * - Q_INVOKABLE void restoreCustomState(QSettings *settings);
+ *
+ * Usually, button checked, QTabWidget indexes...
+ * Do not store size related things or native Qt save/restore states here, that's the role
+ * of UIStateManager itself.
  */
 
 typedef QVector<QVariant> UISizeVector;
@@ -105,6 +115,9 @@ private:
     // The UISizeVector is logical index based.
     QHash<QString, UISizeVector> m_defaultSplitterSizes;
     QHash<QString, UISizeVector> m_defaultHeaderSizes;
+    // Custom restore/save handling
+    QMetaMethod m_customRestoreMethod;
+    QMetaMethod m_customSaveMethod;
 
 private slots:
     void headerSectionCountChanged();
