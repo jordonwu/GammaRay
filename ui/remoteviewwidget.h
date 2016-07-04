@@ -90,6 +90,9 @@ public:
     QAction *zoomOutAction() const;
     QAction *zoomInAction() const;
 
+    virtual void restoreState(const QByteArray &state);
+    virtual QByteArray saveState() const;
+
 public slots:
     /// Clears the current view content.
     void reset();
@@ -100,6 +103,7 @@ public slots:
     void zoomIn();
     void zoomOut();
     void fitToView();
+    void centerView();
 
 signals:
     void zoomChanged();
@@ -118,6 +122,9 @@ protected:
     QPoint mapToSource(QPoint pos) const;
     // translates from source coordinates to view coordinates
     QPoint mapFromSource(QPoint pos) const;
+
+    void restoreState(QDataStream &stream);
+    void saveState(QDataStream &stream) const;
 
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
@@ -182,6 +189,7 @@ private:
     QPoint m_measurementStartPosition; // in source coordinates
     QPoint m_measurementEndPosition; // in source coordinates
     bool m_hasMeasurement;
+    bool m_initialZoomDone;
 };
 }
 
