@@ -24,7 +24,6 @@
 #include "kmodelindexproxymapper.h"
 
 #include <QItemSelection>
-#include <QTimer>
 #include <QDebug>
 
 class KLinkItemSelectionModelPrivate
@@ -36,11 +35,8 @@ public:
           m_model(model),
           m_linkedItemSelectionModel(linkedItemSelectionModel),
           m_ignoreCurrentChanged(false),
-          m_indexMapper(new KModelIndexProxyMapper(model, linkedItemSelectionModel->model(), proxySelectionModel)),
-          m_queuedTimer(new QTimer(proxySelectionModel))
+          m_indexMapper(new KModelIndexProxyMapper(model, linkedItemSelectionModel->model(), proxySelectionModel))
     {
-        m_queuedTimer->setSingleShot(true);
-        m_queuedTimer->setInterval(25);
     }
 
     Q_DECLARE_PUBLIC(KLinkItemSelectionModel)
@@ -60,30 +56,17 @@ public:
     void sourceSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void sourceCurrentChanged(const QModelIndex &current);
     void slotCurrentChanged(const QModelIndex &current);
-    void slotSourceModelLayoutChanged();
-    void slotHandleQueue();
-
-    typedef QPair<QItemSelection, QItemSelection> SelectionChanges;
-    typedef QVector<SelectionChanges> SelectionChangesList;
 
     QAbstractItemModel *const m_model;
     QItemSelectionModel *const m_linkedItemSelectionModel;
     bool m_ignoreCurrentChanged;
     KModelIndexProxyMapper *const m_indexMapper;
-    QTimer *const m_queuedTimer;
-    SelectionChangesList m_queuedChanges;
 };
 
 KLinkItemSelectionModel::KLinkItemSelectionModel(QAbstractItemModel *model, QItemSelectionModel *proxySelector, QObject *parent)
     : QItemSelectionModel(model, parent),
       d_ptr(new KLinkItemSelectionModelPrivate(this, model, proxySelector))
 {
-    Q_D(KLinkItemSelectionModel);
-    connect(d->m_queuedTimer, SIGNAL(timeout()), SLOT(slotHandleQueue()));
-    connect(model, SIGNAL(columnsInserted(QModelIndex,int,int)), SLOT(slotSourceModelLayoutChanged()));
-    connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(slotSourceModelLayoutChanged()));
-    connect(model, SIGNAL(layoutChanged()), SLOT(slotSourceModelLayoutChanged()));
-    connect(model, SIGNAL(modelReset()), SLOT(slotSourceModelLayoutChanged()));
     connect(proxySelector, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), SLOT(sourceSelectionChanged(QItemSelection,QItemSelection)));
     connect(proxySelector, SIGNAL(currentChanged(QModelIndex,QModelIndex)), SLOT(sourceCurrentChanged(QModelIndex)));
     connect(this, SIGNAL(currentChanged(QModelIndex,QModelIndex)), SLOT(slotCurrentChanged(QModelIndex)));
@@ -172,32 +155,6 @@ void KLinkItemSelectionModelPrivate::slotCurrentChanged(const QModelIndex &curre
     m_linkedItemSelectionModel->setCurrentIndex(mappedCurrent, QItemSelectionModel::NoUpdate);
 }
 
-void KLinkItemSelectionModelPrivate::slotSourceModelLayoutChanged()
-{
-    m_queuedTimer->start();
-}
-
-void KLinkItemSelectionModelPrivate::slotHandleQueue()
-{
-    Q_Q(KLinkItemSelectionModel);
-
-    if (m_model->rowCount() == 0) {
-        return;
-    }
-
-    foreach ( const SelectionChanges &changes, m_queuedChanges) {
-        Q_ASSERT(assertSelectionValid(changes.first));
-        Q_ASSERT(assertSelectionValid(changes.second));
-        const QItemSelection mappedDeselection = m_indexMapper->mapSelectionRightToLeft(changes.second);
-        const QItemSelection mappedSelection = m_indexMapper->mapSelectionRightToLeft(changes.first);
-
-        q->QItemSelectionModel::select(mappedDeselection, QItemSelectionModel::Deselect);
-        q->QItemSelectionModel::select(mappedSelection, QItemSelectionModel::Select);
-    }
-
-    m_queuedChanges.clear();
-}
-
 void KLinkItemSelectionModelPrivate::sourceSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
     Q_Q(KLinkItemSelectionModel);
@@ -213,13 +170,8 @@ void KLinkItemSelectionModelPrivate::sourceSelectionChanged(const QItemSelection
     const QItemSelection mappedDeselection = m_indexMapper->mapSelectionRightToLeft(_deselected);
     const QItemSelection mappedSelection = m_indexMapper->mapSelectionRightToLeft(_selected);
 
-    if (m_model->rowCount() == 0 && (!_selected.isEmpty() || !_deselected.isEmpty()) && (mappedSelection.isEmpty() || mappedDeselection.isEmpty())) {
-        m_queuedChanges << qMakePair(_selected, _deselected);
-    }
-    else {
-        q->QItemSelectionModel::select(mappedDeselection, QItemSelectionModel::Deselect);
-        q->QItemSelectionModel::select(mappedSelection, QItemSelectionModel::Select);
-    }
+    q->QItemSelectionModel::select(mappedDeselection, QItemSelectionModel::Deselect);
+    q->QItemSelectionModel::select(mappedSelection, QItemSelectionModel::Select);
 }
 
 void KLinkItemSelectionModelPrivate::sourceCurrentChanged(const QModelIndex &current)
