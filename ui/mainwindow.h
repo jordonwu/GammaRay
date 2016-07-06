@@ -63,6 +63,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    Q_INVOKABLE void saveCustomState(QSettings *settings) const;
+    Q_INVOKABLE void restoreCustomState(QSettings *settings);
+
 signals:
     void targetQuitRequested();
 
@@ -83,7 +86,6 @@ private slots:
     void setCodeNavigationIDE(QAction *action);
 
 private:
-    void selectInitialTool();
     QWidget *createErrorPage(const QModelIndex &index);
 
     QScopedPointer<Ui::MainWindow> ui;

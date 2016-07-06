@@ -44,6 +44,7 @@ public:
 
 public slots:
     void selectObject(GammaRay::ObjectId id, const QString &toolId) Q_DECL_OVERRIDE;
+    void selectTool(const QString &toolId) Q_DECL_OVERRIDE;
     void requestSupportedTools(GammaRay::ObjectId id) Q_DECL_OVERRIDE;
 
     void detachProbe() Q_DECL_OVERRIDE;

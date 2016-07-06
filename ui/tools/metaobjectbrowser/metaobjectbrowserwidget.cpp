@@ -83,7 +83,7 @@ MetaObjectBrowserWidget::MetaObjectBrowserWidget(QWidget *parent)
     hbox->addLayout(vbox);
     hbox->addWidget(propertyWidget);
 
-    connect(m_propertyWidget, SIGNAL(tabsUpdated()), &m_stateManager, SLOT(reset()));
+    connect(m_propertyWidget, SIGNAL(tabsUpdated()), this, SLOT(propertyWidgetTabsChanged()));
 }
 
 void MetaObjectBrowserWidget::selectionChanged(const QItemSelection &selection)
@@ -92,4 +92,10 @@ void MetaObjectBrowserWidget::selectionChanged(const QItemSelection &selection)
         return;
 
     m_treeView->scrollTo(selection.first().topLeft()); // in case of remote changes
+}
+
+void MetaObjectBrowserWidget::propertyWidgetTabsChanged()
+{
+    m_stateManager.saveState();
+    m_stateManager.reset();
 }

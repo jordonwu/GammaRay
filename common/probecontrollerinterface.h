@@ -106,6 +106,7 @@ public:
     virtual ~ProbeControllerInterface();
 
     virtual void selectObject(ObjectId id, const QString &toolId) = 0;
+    virtual void selectTool(const QString &toolId) = 0;
 
     virtual void requestSupportedTools(ObjectId id) = 0;
 

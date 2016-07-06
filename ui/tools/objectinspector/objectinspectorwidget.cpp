@@ -78,7 +78,7 @@ ObjectInspectorWidget::ObjectInspectorWidget(QWidget *parent)
 
     m_stateManager.setDefaultSizes(ui->mainSplitter, UISizeVector() << "60%" << "40%");
 
-    connect(ui->objectPropertyWidget, SIGNAL(tabsUpdated()), &m_stateManager, SLOT(reset()));
+    connect(ui->objectPropertyWidget, SIGNAL(tabsUpdated()), this, SLOT(propertyWidgetTabsChanged()));
 }
 
 ObjectInspectorWidget::~ObjectInspectorWidget()
@@ -109,4 +109,10 @@ void ObjectInspectorWidget::objectContextMenuRequested(const QPoint &pos)
     ext.populateMenu(&menu);
 
     menu.exec(ui->objectTreeView->viewport()->mapToGlobal(pos));
+}
+
+void ObjectInspectorWidget::propertyWidgetTabsChanged()
+{
+    m_stateManager.saveState();
+    m_stateManager.reset();
 }

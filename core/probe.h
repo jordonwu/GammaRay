@@ -88,6 +88,7 @@ public:
     void selectObject(QObject *object, const QString &toolId,
                       const QPoint &pos = QPoint()) Q_DECL_OVERRIDE;
     void selectObject(void *object, const QString &typeName) Q_DECL_OVERRIDE;
+    void selectTool(const QString &toolId);
     void registerSignalSpyCallbackSet(const SignalSpyCallbackSet &callbacks) Q_DECL_OVERRIDE;
 
     QObject *window() const;

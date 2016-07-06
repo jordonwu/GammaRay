@@ -980,6 +980,13 @@ void Probe::selectObject(void *object, const QString &typeName)
     emit nonQObjectSelected(object, typeName);
 }
 
+void Probe::selectTool(const QString &toolId)
+{
+    const auto index = m_toolModel->match(m_toolModel->index(0, 0), ToolModelRole::ToolId, toolId, 1,
+                                                Qt::MatchExactly | Qt::MatchRecursive | Qt::MatchWrap).value(0);
+    selectTool(index);
+}
+
 void Probe::selectTool(const QModelIndex &toolModelSourceIndex)
 {
     const auto proxy = qobject_cast<const QAbstractProxyModel *>(m_toolSelectionModel->model());

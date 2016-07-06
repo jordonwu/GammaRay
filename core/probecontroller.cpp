@@ -62,6 +62,11 @@ void ProbeController::selectObject(ObjectId id, const QString &toolId)
     }
 }
 
+void ProbeController::selectTool(const QString &toolId)
+{
+    Probe::instance()->selectTool(toolId);
+}
+
 void ProbeController::requestSupportedTools(ObjectId id)
 {
     QModelIndexList indexes;
