@@ -36,6 +36,7 @@
 #include "paintanalyzerclient.h"
 #include "remoteviewclient.h"
 
+#include <common/modelroles.h>
 #include <common/objectbroker.h>
 #include <common/streamoperators.h>
 
@@ -146,24 +147,26 @@ void ClientConnectionManager::connectionEstablished()
 {
     m_toolModel = ObjectBroker::model(QStringLiteral("com.kdab.GammaRay.ToolModel"));
 
-    if (m_toolModel->rowCount() <= 0) {
+    if (isToolModelReady()) {
+        toolModelChanged();
+    }
+    else {
         connect(m_toolModel, SIGNAL(rowsInserted(QModelIndex,int,int)),
-                SLOT(toolModelPopulated()));
-        connect(m_toolModel, SIGNAL(layoutChanged()), SLOT(toolModelPopulated()));
-        connect(m_toolModel, SIGNAL(modelReset()), SLOT(toolModelPopulated()));
-    } else {
-        toolModelPopulated();
+                SLOT(toolModelChanged()));
+        connect(m_toolModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+                SLOT(toolModelChanged()));
+        connect(m_toolModel, SIGNAL(layoutChanged()), SLOT(toolModelChanged()));
+        connect(m_toolModel, SIGNAL(modelReset()), SLOT(toolModelChanged()));
     }
 }
 
-void ClientConnectionManager::toolModelPopulated()
+void ClientConnectionManager::toolModelChanged()
 {
-    if (m_toolModel->rowCount() <= 0)
-        return;
-
-    disconnect(m_toolModel, 0, this, 0);
-    QTimer::singleShot(0, this, SLOT(delayedHideSplashScreen()));
-    emit ready();
+    if (isToolModelReady()) {
+        disconnect(m_toolModel, 0, this, 0);
+        QTimer::singleShot(0, this, SLOT(delayedHideSplashScreen()));
+        emit ready();
+    }
 }
 
 QMainWindow *ClientConnectionManager::createMainWindow()
@@ -209,4 +212,22 @@ void ClientConnectionManager::delayedHideSplashScreen()
 void ClientConnectionManager::targetQuitRequested()
 {
     m_ignorePersistentError = true;
+}
+
+bool ClientConnectionManager::isToolModelReady() const
+{
+    // A ready tool model is:
+    // - Has rows
+    // - Every row has a non null id / has ui role
+
+    if (m_toolModel->rowCount() <= 0)
+        return false;
+
+    for (int i = 0; i < m_toolModel->rowCount(); ++i) {
+        const auto index = m_toolModel->index(i, 0);
+        if (index.data(ToolModelRole::ToolId).isNull() || index.data(ToolModelRole::ToolHasUi).isNull())
+            return false;
+    }
+
+    return true;
 }

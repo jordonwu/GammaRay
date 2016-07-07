@@ -32,6 +32,7 @@
 #include <common/protocol.h>
 #include <common/message.h>
 #include <common/modelevent.h>
+#include <common/probecontrollerinterface.h>
 
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
@@ -53,6 +54,9 @@ RemoteModelServer::RemoteModelServer(const QString &objectName, QObject *parent)
     , m_dummyBuffer(new QBuffer(&m_dummyData, this))
     , m_monitored(false)
 {
+    qRegisterMetaType<ObjectId>();
+    qRegisterMetaTypeStreamOperators<ObjectId>();
+
     setObjectName(objectName);
     m_dummyBuffer->open(QIODevice::WriteOnly);
     registerServer();

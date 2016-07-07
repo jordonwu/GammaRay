@@ -30,6 +30,7 @@
 #include "client.h"
 
 #include <common/message.h>
+#include <common/probecontrollerinterface.h>
 
 #include <QApplication>
 #include <QDataStream>
@@ -103,6 +104,9 @@ RemoteModel::RemoteModel(const QString &serverObject, QObject *parent)
     , m_proxyCaseSensitivity(Qt::CaseSensitive)
     , m_proxyKeyColumn(0)
 {
+    qRegisterMetaType<ObjectId>();
+    qRegisterMetaTypeStreamOperators<ObjectId>();
+
     if (s_emptyDisplayValue.isNull()) {
         s_emptyDisplayValue = tr("Loading...");
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)

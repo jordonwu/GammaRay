@@ -169,7 +169,7 @@ private:
     friend class ProbeCreator;
     friend class BenchSuite;
 
-    void selectTool(const QModelIndex &toolModelSourceIndex);
+    void selectTool(const QModelIndex &toolIndex);
 
     /* Returns @c true if we have working hooks in QtCore, that is we are notified reliably
      * about every QObject creation/destruction.

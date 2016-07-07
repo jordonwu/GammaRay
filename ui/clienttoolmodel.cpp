@@ -46,6 +46,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QWidget>
+#include <QDebug>
 
 using namespace GammaRay;
 
@@ -201,7 +202,10 @@ bool ClientToolModel::filterAcceptsRow(int source_row, const QModelIndex &source
         return false;
 
     const auto srcIdx = sourceModel()->index(source_row, 0);
-    return srcIdx.data(ToolModelRole::ToolHasUi).toBool();
+    // Make sure incomplete data are not filtered  out by default (they will be later if needed)
+    // This fix the initial tool selection
+    const auto data = srcIdx.data(ToolModelRole::ToolHasUi);
+    return data.isNull() ? true : data.toBool();
 }
 
 bool ClientToolModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const

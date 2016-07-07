@@ -219,10 +219,6 @@ Probe::Probe(QObject *parent)
 
     ProbeSettings::receiveSettings();
     m_toolModel = new ToolModel(this);
-    auto sortedToolModel = new ServerProxyModel<QSortFilterProxyModel>(this);
-    sortedToolModel->setSourceModel(m_toolModel);
-    sortedToolModel->setDynamicSortFilter(true);
-    sortedToolModel->sort(0);
 
     m_server = new Server(this);
     ProbeSettings::sendServerAddress(m_server->externalAddress());
@@ -234,9 +230,9 @@ Probe::Probe(QObject *parent)
     registerModel(QStringLiteral("com.kdab.GammaRay.ObjectTree"), m_objectTreeModel);
     registerModel(QStringLiteral("com.kdab.GammaRay.ObjectList"), m_objectListModel);
     registerModel(QStringLiteral("com.kdab.GammaRay.MetaObjectModel"), m_metaObjectTreeModel);
-    registerModel(QStringLiteral("com.kdab.GammaRay.ToolModel"), sortedToolModel);
+    registerModel(QStringLiteral("com.kdab.GammaRay.ToolModel"), m_toolModel);
 
-    m_toolSelectionModel = ObjectBroker::selectionModel(sortedToolModel);
+    m_toolSelectionModel = ObjectBroker::selectionModel(m_toolModel);
 
     ToolPluginModel *toolPluginModel = new ToolPluginModel(m_toolModel->plugins(), this);
     registerModel(QStringLiteral("com.kdab.GammaRay.ToolPluginModel"), toolPluginModel);
@@ -954,8 +950,8 @@ bool Probe::hasReliableObjectTracking() const
 
 void Probe::selectObject(QObject *object, const QPoint &pos)
 {
-    const auto srcIdxs = m_toolModel->toolsForObject(object);
-    selectTool(srcIdxs.value(0));
+    const auto matches = m_toolModel->toolsForObject(object);
+    selectTool(matches.value(0));
     emit objectSelected(object, pos);
 }
 
@@ -975,8 +971,8 @@ void Probe::selectObject(QObject *object, const QString &toolId, const QPoint &p
 
 void Probe::selectObject(void *object, const QString &typeName)
 {
-    const auto srcIdxs = m_toolModel->toolsForObject(object, typeName);
-    selectTool(srcIdxs.value(0));
+    const auto matches = m_toolModel->toolsForObject(object, typeName);
+    selectTool(matches.value(0));
     emit nonQObjectSelected(object, typeName);
 }
 
@@ -987,14 +983,13 @@ void Probe::selectTool(const QString &toolId)
     selectTool(index);
 }
 
-void Probe::selectTool(const QModelIndex &toolModelSourceIndex)
+void Probe::selectTool(const QModelIndex &toolIndex)
 {
-    const auto proxy = qobject_cast<const QAbstractProxyModel *>(m_toolSelectionModel->model());
-    if (!proxy->sourceModel()) // still detached, ie. no client connected
+    const auto model = qobject_cast<const QAbstractItemModel *>(m_toolSelectionModel->model());
+    if (!model) // still detached, ie. no client connected
         return;
 
-    const auto idx = proxy->mapFromSource(toolModelSourceIndex);
-    m_toolSelectionModel->select(idx, QItemSelectionModel::Select
+    m_toolSelectionModel->select(toolIndex, QItemSelectionModel::Select
                                  |QItemSelectionModel::Clear
                                  |QItemSelectionModel::Rows
                                  |QItemSelectionModel::Current);

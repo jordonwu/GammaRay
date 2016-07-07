@@ -103,7 +103,7 @@ private slots:
     void connectionEstablished();
     void transientConnectionError();
 
-    void toolModelPopulated();
+    void toolModelChanged();
     void delayedHideSplashScreen();
     void targetQuitRequested();
 
@@ -115,6 +115,8 @@ private:
     QTime m_connectionTimeout;
     bool m_ignorePersistentError;
     int m_tries;
+
+    bool isToolModelReady() const;
 };
 }
 
