@@ -63,10 +63,50 @@ public:
     Protocol::ObjectAddress address() const;
     Protocol::MessageType type() const;
 
-    /** Access to the message payload. This is read-only for received messages
-     *  and write-only for messages to be sent.
+    /** Read value from the payload
+     *  This operator proxy over payload() allow to do:
+     *   - Compile time check on the metatype id
+     *   - Run time check on the stream status
      */
-    QDataStream &payload() const;
+    template <typename T>
+    GammaRay::Message &operator>>(T &value)
+    {
+        const int id = qMetaTypeId<T>();
+        const char *name = QMetaType::typeName(id);
+        if (payload().status() != QDataStream::Ok)
+            qWarning("%s: Attempting to read from a non valid stream: status: %i, type: %i, %s", Q_FUNC_INFO, int(payload().status()), id, name);
+        payload() >> value;
+        if (payload().status() != QDataStream::Ok)
+            qWarning("%s: Read from a non valid stream: status: %i, type: %i, %s", Q_FUNC_INFO, int(payload().status()), id, name);
+        return *this;
+    }
+
+    /** Read value from the payload
+     *  This overload allow to read content from a const Message.
+     */
+    template <typename T>
+    GammaRay::Message &operator>>(T &value) const
+    {
+        return const_cast<GammaRay::Message *>(this)->operator>>(value);
+    }
+
+    /** Write value to the payload.
+     *  This operator proxy over payload() allow to do:
+     *   - Compile time check on the metatype id
+     *   - Run time check on the stream status
+     */
+    template <typename T>
+    GammaRay::Message &operator<<(const T &value)
+    {
+        const int id = qMetaTypeId<T>();
+        const char *name = QMetaType::typeName(id);
+        if (payload().status() != QDataStream::Ok)
+            qWarning("%s: Attempting to write to a non valid stream: status: %i, type: %i, %s", Q_FUNC_INFO, int(payload().status()), id, name);
+        payload() << value;
+        if (payload().status() != QDataStream::Ok)
+            qWarning("%s: Write to a non valid stream: status: %i, type: %i, %s", Q_FUNC_INFO, int(payload().status()), id, name);
+        return *this;
+    }
 
     /** Checks if there is a full message waiting in @p device. */
     static bool canReadMessage(QIODevice *device);
@@ -81,6 +121,11 @@ public:
 
 private:
     Message();
+
+    /** Access to the message payload. This is read-only for received messages
+     *  and write-only for messages to be sent.
+     */
+    QDataStream &payload() const;
 
     mutable QByteArray m_buffer;
     mutable QScopedPointer<QDataStream> m_stream;

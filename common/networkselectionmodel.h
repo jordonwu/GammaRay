@@ -78,4 +78,9 @@ private:
 };
 }
 
+QT_BEGIN_NAMESPACE
+Q_DECLARE_METATYPE(QItemSelectionModel::SelectionFlag)
+Q_DECLARE_METATYPE(QItemSelectionModel::SelectionFlags)
+QT_END_NAMESPACE
+
 #endif // GAMMARAY_NETWORKSELECTIONMODEL_H

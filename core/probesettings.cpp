@@ -116,7 +116,7 @@ void ProbeSettingsReceiver::readyRead()
         case Protocol::ServerVersion:
         {
             qint32 version;
-            msg.payload() >> version;
+            msg >> version;
             if (version != Protocol::version()) {
                 qWarning()
                         <<
@@ -130,7 +130,7 @@ void ProbeSettingsReceiver::readyRead()
         }
         case Protocol::ProbeSettings:
         {
-            msg.payload() >> s_probeSettings()->settings;
+            msg >> s_probeSettings()->settings;
             // qDebug() << Q_FUNC_INFO << s_probeSettings()->settings;
             const QString probePath = ProbeSettings::value(QStringLiteral("ProbePath")).toString();
             setRootPathFromProbePath(probePath);
@@ -150,7 +150,7 @@ void ProbeSettingsReceiver::sendServerAddress(const QUrl &address)
         return;
 
     Message msg(Protocol::LauncherAddress, Protocol::ServerAddress);
-    msg.payload() << address;
+    msg << address;
     msg.write(m_socket);
 
     m_socket->waitForBytesWritten();
