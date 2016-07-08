@@ -225,7 +225,8 @@ bool ClientConnectionManager::isToolModelReady() const
 
     for (int i = 0; i < m_toolModel->rowCount(); ++i) {
         const auto index = m_toolModel->index(i, 0);
-        if (index.data(ToolModelRole::ToolId).isNull() || index.data(ToolModelRole::ToolHasUi).isNull())
+        if (index.data(ToolModelRole::ToolId).isNull() ||
+                index.data(ToolModelRole::ToolHasUi).isNull())
             return false;
     }
 

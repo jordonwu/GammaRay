@@ -31,18 +31,6 @@
 
 #include <QWidget>
 #include "tooluifactory.h"
-#include "propertywidget.h"
-#include "propertiestab.h"
-#include "methodstab.h"
-#include "connectionstab.h"
-#include "enumstab.h"
-#include "classinfotab.h"
-#include "propertiesextensionclient.h"
-#include "methodsextensionclient.h"
-#include "connectionsextensionclient.h"
-#include "applicationattributetab.h"
-
-#include <common/objectbroker.h>
 
 #include <ui/uistatemanager.h>
 
@@ -53,12 +41,6 @@ QT_END_NAMESPACE
 namespace GammaRay {
 namespace Ui {
 class ObjectInspectorWidget;
-}
-
-template<typename T>
-static QObject *createExtension(const QString &name, QObject *parent)
-{
-    return new T(name, parent);
 }
 
 class ObjectInspectorWidget : public QWidget
@@ -88,34 +70,6 @@ public:
     {
         return new ObjectInspectorWidget(
             parentWidget);
-    }
-    void initUi() Q_DECL_OVERRIDE
-    {
-        PropertyWidget::registerTab<PropertiesTab>(QStringLiteral("properties"), tr(
-                                                       "Properties"),
-                                                   PropertyWidgetTabPriority::First);
-        ObjectBroker::registerClientObjectFactoryCallback<PropertiesExtensionInterface *>(
-            createExtension<PropertiesExtensionClient>);
-        PropertyWidget::registerTab<MethodsTab>(QStringLiteral("methods"), tr(
-                                                    "Methods"),
-                                                PropertyWidgetTabPriority::Basic - 1);
-        ObjectBroker::registerClientObjectFactoryCallback<MethodsExtensionInterface *>(
-            createExtension<MethodsExtensionClient>);
-        PropertyWidget::registerTab<ConnectionsTab>(QStringLiteral("connections"), tr(
-                                                        "Connections"),
-                                                    PropertyWidgetTabPriority::Basic - 1);
-        ObjectBroker::registerClientObjectFactoryCallback<ConnectionsExtensionInterface *>(
-            createExtension<ConnectionsExtensionClient>);
-        PropertyWidget::registerTab<EnumsTab>(QStringLiteral("enums"), tr(
-                                                  "Enums"), PropertyWidgetTabPriority::Exotic - 1);
-        PropertyWidget::registerTab<ClassInfoTab>(QStringLiteral("classInfo"), tr(
-                                                      "Class Info"),
-                                                  PropertyWidgetTabPriority::Exotic - 1);
-        PropertyWidget::registerTab<ApplicationAttributeTab>(QStringLiteral(
-                                                                 "applicationAttributes"),
-                                                             tr(
-                                                                 "Attributes"),
-            PropertyWidgetTabPriority::Advanced);
     }
 };
 }

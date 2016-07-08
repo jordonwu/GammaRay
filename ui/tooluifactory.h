@@ -80,7 +80,14 @@ public:
      */
     virtual void initUi();
 
+protected:
+    /**
+     * Initialize UI related stuff for the basic Object based tools.
+     */
+    void initUiObject();
+
 private:
+    static bool s_ObjectFactoriesInitialized;
     Q_DISABLE_COPY(ToolUiFactory)
 };
 
