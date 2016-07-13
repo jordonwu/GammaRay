@@ -25,14 +25,14 @@
 */
 
 #include "contextmenuextension.h"
-#include "clienttoolmodel.h"
+#include "clienttoolmanager.h"
 #include "uiintegration.h"
 
 #include <common/objectbroker.h>
-#include <common/probecontrollerinterface.h>
 #include <common/propertymodel.h>
 
 #include <QMenu>
+#include <QModelIndex>
 
 using namespace GammaRay;
 
@@ -118,17 +118,17 @@ void ContextMenuExtension::populateMenu(QMenu *menu)
     if (m_id.isNull())
         return;
 
-    auto probeController = ObjectBroker::object<ProbeControllerInterface *>();
-    probeController->requestSupportedTools(m_id);
+    auto toolManager = ObjectBroker::object<ToolManagerInterface *>();
+    toolManager->requestToolsForObject(m_id);
 
     // delay adding actions until we know the supported tools
-    connect(probeController, &ProbeControllerInterface::supportedToolsResponse,
+    connect(toolManager, &ToolManagerInterface::toolsForObjectResponse,
             menu, [menu](ObjectId id, const ToolInfos &toolInfos) {
         foreach (const auto &toolInfo, toolInfos) {
-            auto action = menu->addAction(tr("Show in \"%1\" tool").arg(toolInfo.name));
+            auto action = menu->addAction(tr("Show in \"%1\" tool").arg(toolInfo.id));
             QObject::connect(action, &QAction::triggered, [id, toolInfo]() {
-                auto probeController = ObjectBroker::object<ProbeControllerInterface *>();
-                probeController->selectObject(id, toolInfo.id);
+                auto toolManager = ObjectBroker::object<ToolManagerInterface *>();
+                toolManager->selectObject(id, toolInfo.id);
             });
         }
     });
